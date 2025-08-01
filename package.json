@@ -1,20 +1,20 @@
 {
     "type": "module",
-    "name": "technical-indicators",
+    "name": "toolbox",
+    "author": "c0sm1cdus7",
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
     "scripts": {
         "clean": "rm -rf node_modules dist pnpm-lock.yaml",
-        "build": "tsc",
-        "postinstall": "pnpm build"
+        "build": "tsc --declaration",
+        "postinstall": "pnpm run build"
     },
     "devDependencies": {
         "@types/node": "^24.1.0",
-        "typescript": "^5.x"
+        "typescript": "^4.3.5"
     },
     "keywords": [],
-    "author": "c0sm1cdus7",
     "license": "ISC",
     "packageManager": "pnpm@9.1.0+sha512.67f5879916a9293e5cf059c23853d571beaf4f753c707f40cb22bed5fb1578c6aad3b6c4107ccb3ba0b35be003eb621a16471ac836c87beb53f9d54bb4612724"
 }
