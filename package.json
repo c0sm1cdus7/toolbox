@@ -4,7 +4,8 @@
     "author": "c0sm1cdus7",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "scripts": {
         "clean": "rm -rf node_modules dist pnpm-lock.yaml",
         "build": "tsc --declaration",
