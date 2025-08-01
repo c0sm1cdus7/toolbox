@@ -1,6 +1,8 @@
 import { normalize } from "./utils.js";
 
-type Kline = number[];
+type numberInString = string | number;
+
+type Kline = [number, numberInString, numberInString, numberInString, numberInString, numberInString, number, numberInString, number, numberInString, numberInString, numberInString];
 
 export const KLINE_FEATURES: number = 16;
 
