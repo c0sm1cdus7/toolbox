@@ -4,6 +4,25 @@ type numberInString = string | number;
 
 type Kline = [number, numberInString, numberInString, numberInString, numberInString, numberInString, number, numberInString, number, numberInString, numberInString, numberInString];
 
+export type Candle = {
+    open: number;
+    high: number;
+    low: number;
+    close: number;
+    volume: number;
+    ultraSlowEma: number;
+    superSlowEma: number;
+    slowEma: number;
+    fastEma: number;
+    slowRsi: number;
+    fastRsi: number;
+    macd: number | null;
+    signal: number | null;
+    histogram: number | null;
+    mfi: number | null;
+    atr: number;
+};
+
 export const KLINE_FEATURES: number = 16;
 
 export function calculateATR(klines: Kline[], period: number = 14): number[] {
@@ -204,7 +223,7 @@ export function addNoiseToKlines(klines: Kline[], percent = 0.0005): Kline[] {
     });
 }
 
-export function calculateIndicators(
+export function calculateCandles(
     klines: Kline[],
     parameters: {
         ultraSlowEmaPeriod: number;
@@ -225,7 +244,7 @@ export function calculateIndicators(
         mfiPeriod: 14,
         atrPeriod: 14
     }
-) {
+): Candle[] {
     const { ultraSlowEmaPeriod, superSlowEmaPeriod, slowEmaPeriod, fastEmaPeriod, slowRsiPeriod, fastRsiPeriod, mfiPeriod, atrPeriod } = parameters;
 
     const maxPeriodRequired = Math.max(ultraSlowEmaPeriod, fastEmaPeriod, slowEmaPeriod, superSlowEmaPeriod, fastRsiPeriod + 1, slowRsiPeriod + 1, mfiPeriod, atrPeriod);
@@ -234,132 +253,75 @@ export function calculateIndicators(
         throw new Error("Not enough klines to compute indicators.");
     }
 
-    const closePrices = klines.map((k) => Number(k[4]));
-    const volumes = klines.map((k) => Number(k[5]));
-
-    const ultraSlowEma = calculateEMA(closePrices, ultraSlowEmaPeriod);
-    const superSlowEma = calculateEMA(closePrices, superSlowEmaPeriod);
-    const slowEma = calculateEMA(closePrices, slowEmaPeriod);
-    const fastEma = calculateEMA(closePrices, fastEmaPeriod);
-    const slowRsi = calculateRSI(closePrices, slowRsiPeriod);
-    const fastRsi = calculateRSI(closePrices, fastRsiPeriod);
-    const { macd, signal, histogram } = calculateMACD(closePrices);
+    const closes = klines.map((k) => Number(k[4]));
+    const ultraSlowEma = calculateEMA(closes, ultraSlowEmaPeriod);
+    const superSlowEma = calculateEMA(closes, superSlowEmaPeriod);
+    const slowEma = calculateEMA(closes, slowEmaPeriod);
+    const fastEma = calculateEMA(closes, fastEmaPeriod);
+    const slowRsi = calculateRSI(closes, slowRsiPeriod);
+    const fastRsi = calculateRSI(closes, fastRsiPeriod);
+    const { macd, signal, histogram } = calculateMACD(closes);
     const mfi = calculateMFI(klines, mfiPeriod);
     const atr = calculateATR(klines, atrPeriod);
 
-    const minPrice = Math.min(...klines.map((k) => Number(k[3])));
-    const maxPrice = Math.max(...klines.map((k) => Number(k[2])));
-    const minVolume = Math.min(...volumes);
-    const maxVolume = Math.max(...volumes);
-
-    const validMacd = macd.filter((v): v is number => v !== null);
-    const minMACD = validMacd.length ? Math.min(...validMacd) : 0;
-    const maxMACD = validMacd.length ? Math.max(...validMacd) : 0;
-
-    const validSignal = signal.filter((v): v is number => v !== null);
-    const minSignal = validSignal.length ? Math.min(...validSignal) : 0;
-    const maxSignal = validSignal.length ? Math.max(...validSignal) : 0;
-
-    const validHistogram = histogram.filter((v): v is number => v !== null);
-    const minHistogram = validHistogram.length ? Math.min(...validHistogram) : 0;
-    const maxHistogram = validHistogram.length ? Math.max(...validHistogram) : 0;
-
-    return {
-        klines,
-        closePrices,
-        volumes,
-        ultraSlowEma,
-        superSlowEma,
-        slowEma,
-        fastEma,
-        slowRsi,
-        fastRsi,
-        macd,
-        signal,
-        histogram,
-        mfi,
-        atr,
-        minPrice,
-        maxPrice,
-        minVolume,
-        maxVolume,
-        minMACD,
-        maxMACD,
-        minSignal,
-        maxSignal,
-        minHistogram,
-        maxHistogram
-    };
+    return klines.map(
+        (k, i): Candle => ({
+            open: Number(k[1]),
+            high: Number(k[2]),
+            low: Number(k[3]),
+            close: Number(k[4]),
+            volume: Number(k[5]),
+            ultraSlowEma: ultraSlowEma[i],
+            superSlowEma: superSlowEma[i],
+            slowEma: slowEma[i],
+            fastEma: fastEma[i],
+            slowRsi: slowRsi[i],
+            fastRsi: fastRsi[i],
+            macd: macd[i],
+            signal: signal[i],
+            histogram: histogram[i],
+            mfi: mfi[i],
+            atr: atr[i]
+        })
+    );
 }
 
-export function normalizeIndicators(indicators: ReturnType<typeof calculateIndicators>) {
-    const {
-        klines,
-        ultraSlowEma,
-        superSlowEma,
-        slowEma,
-        fastEma,
-        slowRsi,
-        fastRsi,
-        macd,
-        signal,
-        histogram,
-        mfi,
-        atr,
-        minPrice,
-        maxPrice,
-        minVolume,
-        maxVolume,
-        minMACD,
-        maxMACD,
-        minSignal,
-        maxSignal,
-        minHistogram,
-        maxHistogram
-    } = indicators;
+export function normalizeCandles(candles: Candle[]): number[][] {
+    const prices = candles.flatMap((c) => [c.open, c.high, c.low, c.close]);
+    const volumes = candles.map((c) => c.volume);
+    const macds = candles.map((c) => c.macd ?? 0);
+    const signals = candles.map((c) => c.signal ?? 0);
+    const histograms = candles.map((c) => c.histogram ?? 0);
 
-    return klines.map((kline, i) => {
-        const open = Number(kline[1]);
-        const high = Number(kline[2]);
-        const low = Number(kline[3]);
-        const close = Number(kline[4]);
-        const volume = Number(kline[5]);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const minVolume = Math.min(...volumes);
+    const maxVolume = Math.max(...volumes);
+    const minMACD = Math.min(...macds);
+    const maxMACD = Math.max(...macds);
+    const minSignal = Math.min(...signals);
+    const maxSignal = Math.max(...signals);
+    const minHistogram = Math.min(...histograms);
+    const maxHistogram = Math.max(...histograms);
 
-        const normalizedOpen = normalize(open, minPrice, maxPrice);
-        const normalizedHigh = normalize(high, minPrice, maxPrice);
-        const normalizedLow = normalize(low, minPrice, maxPrice);
-        const normalizedClose = normalize(close, minPrice, maxPrice);
-        const normalizedVolume = minVolume === maxVolume ? 0 : (volume - minVolume) / (maxVolume - minVolume);
-
-        const normalizedFastEMA = fastEma[i] != null ? normalize(fastEma[i]!, minPrice, maxPrice) : 0;
-        const normalizedSlowEMA = slowEma[i] != null ? normalize(slowEma[i]!, minPrice, maxPrice) : 0;
-        const normalizedSuperSlowEMA = superSlowEma[i] != null ? normalize(superSlowEma[i]!, minPrice, maxPrice) : 0;
-        const normalizedUltraSlowEMA = ultraSlowEma[i] != null ? normalize(ultraSlowEma[i]!, minPrice, maxPrice) : 0;
-        const normalizedFastRSI = fastRsi[i] != null ? fastRsi[i]! / 100 : 0;
-        const normalizedSlowRSI = slowRsi[i] != null ? slowRsi[i]! / 100 : 0;
-        const normalizedMACD = macd[i] != null ? normalize(macd[i]!, minMACD, maxMACD) : 0;
-        const normalizedSignal = signal[i] != null ? normalize(signal[i]!, minSignal, maxSignal) : 0;
-        const normalizedHistogram = histogram[i] != null ? normalize(histogram[i]!, minHistogram, maxHistogram) : 0;
-        const normalizedMFI = mfi[i] != null ? mfi[i]! / 100 : 0;
-        const normalizedATR = atr[i] != null ? normalize(atr[i]!, minPrice, maxPrice) : 0;
-
+    return candles.map((c) => {
         return [
-            normalizedOpen,
-            normalizedHigh,
-            normalizedLow,
-            normalizedClose,
-            normalizedVolume,
-            normalizedFastEMA,
-            normalizedSlowEMA,
-            normalizedSuperSlowEMA,
-            normalizedUltraSlowEMA,
-            normalizedFastRSI,
-            normalizedSlowRSI,
-            normalizedMACD,
-            normalizedSignal,
-            normalizedHistogram,
-            normalizedMFI,
-            normalizedATR
+            normalize(c.open, minPrice, maxPrice),
+            normalize(c.high, minPrice, maxPrice),
+            normalize(c.low, minPrice, maxPrice),
+            normalize(c.close, minPrice, maxPrice),
+            minVolume === maxVolume ? 0 : (c.volume - minVolume) / (maxVolume - minVolume),
+            normalize(c.fastEma, minPrice, maxPrice),
+            normalize(c.slowEma, minPrice, maxPrice),
+            normalize(c.superSlowEma, minPrice, maxPrice),
+            normalize(c.ultraSlowEma, minPrice, maxPrice),
+            c.fastRsi / 100,
+            c.slowRsi / 100,
+            normalize(c.macd ?? 0, minMACD, maxMACD),
+            normalize(c.signal ?? 0, minSignal, maxSignal),
+            normalize(c.histogram ?? 0, minHistogram, maxHistogram),
+            (c.mfi ?? 0) / 100,
+            normalize(c.atr, minPrice, maxPrice)
         ];
     });
 }
