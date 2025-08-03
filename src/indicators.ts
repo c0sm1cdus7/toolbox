@@ -21,6 +21,7 @@ export type Candle = {
     histogram: number | null;
     mfi: number | null;
     atr: number;
+    timestamp: number;
 };
 
 export const KLINE_FEATURES: number = 16;
@@ -281,7 +282,8 @@ export function calculateCandles(
             signal: signal[i],
             histogram: histogram[i],
             mfi: mfi[i],
-            atr: atr[i]
+            atr: atr[i],
+            timestamp: Number(k[0])
         })
     );
 }
