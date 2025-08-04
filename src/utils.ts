@@ -139,8 +139,10 @@ export function calculateSharpeRatio(series: number[]): number {
     return stdDev === 0 ? 0 : mean / stdDev;
 }
 
-export function indexSinceCeiling(series: number[]): number {
-    const ceiling = Math.max(...series);
-    const firstIndex = series.indexOf(ceiling);
-    return firstIndex >= 0 ? series.length - 1 - firstIndex : 0;
+export function indexSinceCeiling(series: number[], windowSize: number): number {
+    const start = Math.max(0, series.length - windowSize);
+    const window = series.slice(start);
+    const ceiling = Math.max(...window);
+    const firstIndex = window.indexOf(ceiling);
+    return firstIndex >= 0 ? window.length - 1 - firstIndex : 0;
 }
