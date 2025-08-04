@@ -138,3 +138,9 @@ export function calculateSharpeRatio(series: number[]): number {
     const stdDev = Math.sqrt(variance);
     return stdDev === 0 ? 0 : mean / stdDev;
 }
+
+export function indexSinceCeiling(series: number[]): number {
+    const ceiling = Math.max(...series);
+    const firstIndex = series.indexOf(ceiling);
+    return firstIndex >= 0 ? series.length - 1 - firstIndex : 0;
+}
