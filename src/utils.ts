@@ -37,6 +37,15 @@ export function saveJSONFile(filePath: string, data: any, overwrite = true) {
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), "utf-8");
 }
 
+export function saveTxtFile(filePath: string, data: string, overwrite = true) {
+    if (!overwrite && fs.existsSync(filePath)) {
+        throw new Error(`File already exists: ${filePath}`);
+    }
+
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, data, "utf-8");
+}
+
 export function readPath(dir: string): { name: string; path: string }[] {
     const base = path.resolve(dir);
     if (!fs.existsSync(base)) return [];
@@ -137,6 +146,12 @@ export function calculateSharpeRatio(series: number[]): number {
     const variance = series.reduce((sum, r) => sum + (r - mean) ** 2, 0) / (series.length - 1);
     const stdDev = Math.sqrt(variance);
     return stdDev === 0 ? 0 : mean / stdDev;
+}
+
+export function getSeriesCeiling(series: number[], windowSize: number): number {
+    const start = Math.max(0, series.length - windowSize);
+    const window = series.slice(start);
+    return Math.max(...window);
 }
 
 export function indexSinceCeiling(series: number[], windowSize: number): number {
