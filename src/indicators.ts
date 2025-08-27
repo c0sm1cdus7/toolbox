@@ -24,7 +24,7 @@ export type Candle = {
     timestamp: number;
 };
 
-export const KLINE_FEATURES: number = 11;
+export const KLINE_FEATURES: number = 15;
 
 export function calculateATR(klines: Kline[], period: number = 14): number[] {
     const trs: number[] = [];
@@ -316,11 +316,11 @@ export function normalizeCandles(candles: Candle[]): number[][] {
             normalize(c.fastEma, minPrice, maxPrice),
             normalize(c.slowEma, minPrice, maxPrice),
             normalize(c.superSlowEma, minPrice, maxPrice),
-            //normalize(c.ultraSlowEma, minPrice, maxPrice),
-            //c.fastRsi / 100,
+            normalize(c.ultraSlowEma, minPrice, maxPrice),
+            c.fastRsi / 100,
             c.slowRsi / 100,
-            //normalize(c.macd ?? 0, minMACD, maxMACD),
-            //normalize(c.signal ?? 0, minSignal, maxSignal),
+            normalize(c.macd ?? 0, minMACD, maxMACD),
+            normalize(c.signal ?? 0, minSignal, maxSignal),
             normalize(c.histogram ?? 0, minHistogram, maxHistogram),
             (c.mfi ?? 0) / 100
             //normalize(c.atr, minPrice, maxPrice)
