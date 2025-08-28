@@ -288,26 +288,39 @@ export function calculateCandles(
     );
 }
 
-export function normalizeCandles(candles: Candle[]): number[][] {
-    const prices = candles.flatMap((c) => [c.open, c.high, c.low, c.close]);
-    const volumes = candles.map((c) => c.volume);
-    const macds = candles.map((c) => c.macd ?? 0);
-    const signals = candles.map((c) => c.signal ?? 0);
-    const histograms = candles.map((c) => c.histogram ?? 0);
+export function normalizeCandles(candles: Candle[], start?: number, end?: number): number[][] {
+    const from = start ?? 0;
+    const to = end ?? candles.length;
 
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
-    const minVolume = Math.min(...volumes);
-    const maxVolume = Math.max(...volumes);
-    const minMACD = Math.min(...macds);
-    const maxMACD = Math.max(...macds);
-    const minSignal = Math.min(...signals);
-    const maxSignal = Math.max(...signals);
-    const minHistogram = Math.min(...histograms);
-    const maxHistogram = Math.max(...histograms);
+    let minPrice = Infinity,
+        maxPrice = -Infinity;
+    let minVolume = Infinity,
+        maxVolume = -Infinity;
+    let minMACD = Infinity,
+        maxMACD = -Infinity;
+    let minSignal = Infinity,
+        maxSignal = -Infinity;
+    let minHistogram = Infinity,
+        maxHistogram = -Infinity;
 
-    return candles.map((c) => {
-        return [
+    for (let i = from; i < to; i++) {
+        const c = candles[i];
+        minPrice = Math.min(minPrice, c.open, c.high, c.low, c.close);
+        maxPrice = Math.max(maxPrice, c.open, c.high, c.low, c.close);
+        minVolume = Math.min(minVolume, c.volume);
+        maxVolume = Math.max(maxVolume, c.volume);
+        minMACD = Math.min(minMACD, c.macd ?? 0);
+        maxMACD = Math.max(maxMACD, c.macd ?? 0);
+        minSignal = Math.min(minSignal, c.signal ?? 0);
+        maxSignal = Math.max(maxSignal, c.signal ?? 0);
+        minHistogram = Math.min(minHistogram, c.histogram ?? 0);
+        maxHistogram = Math.max(maxHistogram, c.histogram ?? 0);
+    }
+
+    const result: number[][] = [];
+    for (let i = from; i < to; i++) {
+        const c = candles[i];
+        result.push([
             normalize(c.open, minPrice, maxPrice),
             normalize(c.high, minPrice, maxPrice),
             normalize(c.low, minPrice, maxPrice),
@@ -323,7 +336,7 @@ export function normalizeCandles(candles: Candle[]): number[][] {
             normalize(c.signal ?? 0, minSignal, maxSignal),
             normalize(c.histogram ?? 0, minHistogram, maxHistogram),
             (c.mfi ?? 0) / 100
-            //normalize(c.atr, minPrice, maxPrice)
-        ];
-    });
+        ]);
+    }
+    return result;
 }
