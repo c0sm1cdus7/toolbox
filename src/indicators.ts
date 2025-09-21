@@ -24,7 +24,7 @@ export type Candle = {
     timestamp: number;
 };
 
-export const KLINE_FEATURES: number = 15;
+export const KLINE_FEATURES: number = 10;
 
 export function calculateATR(klines: Kline[], period: number = 14): number[] {
     const trs: number[] = [];
@@ -237,7 +237,7 @@ export function calculateCandles(
         atrPeriod: number;
     } = {
         ultraSlowEmaPeriod: 200,
-        superSlowEmaPeriod: 100,
+        superSlowEmaPeriod: 99,
         slowEmaPeriod: 25,
         fastEmaPeriod: 7,
         slowRsiPeriod: 14,
@@ -302,6 +302,8 @@ export function normalizeCandles(candles: Candle[], start?: number, end?: number
         maxSignal = -Infinity;
     let minHistogram = Infinity,
         maxHistogram = -Infinity;
+    let minAtr = Infinity,
+        maxAtr = -Infinity;
 
     for (let i = from; i < to; i++) {
         const c = candles[i];
@@ -315,27 +317,30 @@ export function normalizeCandles(candles: Candle[], start?: number, end?: number
         maxSignal = Math.max(maxSignal, c.signal ?? 0);
         minHistogram = Math.min(minHistogram, c.histogram ?? 0);
         maxHistogram = Math.max(maxHistogram, c.histogram ?? 0);
+        minAtr = Math.min(minAtr, c.atr ?? 0);
+        maxAtr = Math.max(maxAtr, c.atr ?? 0);
     }
 
     const result: number[][] = [];
     for (let i = from; i < to; i++) {
         const c = candles[i];
         result.push([
-            normalize(c.open, minPrice, maxPrice),
-            normalize(c.high, minPrice, maxPrice),
-            normalize(c.low, minPrice, maxPrice),
+            //normalize(c.open, minPrice, maxPrice),
+            //normalize(c.high, minPrice, maxPrice),
+            //normalize(c.low, minPrice, maxPrice),
             normalize(c.close, minPrice, maxPrice),
-            minVolume === maxVolume ? 0 : (c.volume - minVolume) / (maxVolume - minVolume),
             normalize(c.fastEma, minPrice, maxPrice),
             normalize(c.slowEma, minPrice, maxPrice),
             normalize(c.superSlowEma, minPrice, maxPrice),
-            normalize(c.ultraSlowEma, minPrice, maxPrice),
-            c.fastRsi / 100,
+            //normalize(c.ultraSlowEma, minPrice, maxPrice),
+            minVolume === maxVolume ? 0 : (c.volume - minVolume) / (maxVolume - minVolume),
+            //c.fastRsi / 100,
             c.slowRsi / 100,
             normalize(c.macd ?? 0, minMACD, maxMACD),
-            normalize(c.signal ?? 0, minSignal, maxSignal),
+            //normalize(c.signal ?? 0, minSignal, maxSignal),
             normalize(c.histogram ?? 0, minHistogram, maxHistogram),
-            (c.mfi ?? 0) / 100
+            (c.mfi ?? 0) / 100,
+            normalize(c.atr ?? 0, minAtr, maxAtr)
         ]);
     }
     return result;
