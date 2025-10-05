@@ -238,7 +238,7 @@ export function calculateCandles(
     } = {
         ultraSlowEmaPeriod: 200,
         superSlowEmaPeriod: 99,
-        slowEmaPeriod: 25,
+        slowEmaPeriod: 24,
         fastEmaPeriod: 7,
         slowRsiPeriod: 24,
         fastRsiPeriod: 7,
@@ -288,60 +288,64 @@ export function calculateCandles(
     );
 }
 
-export function normalizeCandles(candles: Candle[], start?: number, end?: number): number[][] {
+export function normalizeCandles(candles: Candle[], features: (keyof Candle)[], start?: number, end?: number): number[][] {
     const from = start ?? 0;
     const to = end ?? candles.length;
 
-    let minPrice = Infinity,
-        maxPrice = -Infinity;
-    let minVolume = Infinity,
-        maxVolume = -Infinity;
-    let minMACD = Infinity,
-        maxMACD = -Infinity;
-    let minSignal = Infinity,
-        maxSignal = -Infinity;
-    let minHistogram = Infinity,
-        maxHistogram = -Infinity;
-    let minAtr = Infinity,
-        maxAtr = -Infinity;
+    const mins: Record<string, number> = {};
+    const maxs: Record<string, number> = {};
+
+    for (const f of features) {
+        mins[f] = Infinity;
+        maxs[f] = -Infinity;
+    }
 
     for (let i = from; i < to; i++) {
         const c = candles[i];
-        minPrice = Math.min(minPrice, c.open, c.high, c.low, c.close);
-        maxPrice = Math.max(maxPrice, c.open, c.high, c.low, c.close);
-        minVolume = Math.min(minVolume, c.volume);
-        maxVolume = Math.max(maxVolume, c.volume);
-        minMACD = Math.min(minMACD, c.macd ?? 0);
-        maxMACD = Math.max(maxMACD, c.macd ?? 0);
-        minSignal = Math.min(minSignal, c.signal ?? 0);
-        maxSignal = Math.max(maxSignal, c.signal ?? 0);
-        minHistogram = Math.min(minHistogram, c.histogram ?? 0);
-        maxHistogram = Math.max(maxHistogram, c.histogram ?? 0);
-        minAtr = Math.min(minAtr, c.atr ?? 0);
-        maxAtr = Math.max(maxAtr, c.atr ?? 0);
+        for (const f of features) {
+            const v = c[f] ?? 0;
+            mins[f] = Math.min(mins[f], v);
+            maxs[f] = Math.max(maxs[f], v);
+        }
     }
 
     const result: number[][] = [];
+
     for (let i = from; i < to; i++) {
         const c = candles[i];
-        result.push([
-            //normalize(c.open, minPrice, maxPrice),
-            //normalize(c.high, minPrice, maxPrice),
-            //normalize(c.low, minPrice, maxPrice),
-            normalize(c.close, minPrice, maxPrice),
-            normalize(c.fastEma, minPrice, maxPrice),
-            normalize(c.slowEma, minPrice, maxPrice),
-            //normalize(c.superSlowEma, minPrice, maxPrice),
-            //normalize(c.ultraSlowEma, minPrice, maxPrice),
-            minVolume === maxVolume ? 0 : (c.volume - minVolume) / (maxVolume - minVolume),
-            //c.fastRsi / 100,
-            c.slowRsi / 100,
-            //normalize(c.macd ?? 0, minMACD, maxMACD),
-            //normalize(c.signal ?? 0, minSignal, maxSignal),
-            normalize(c.histogram ?? 0, minHistogram, maxHistogram),
-            (c.mfi ?? 0) / 100
-            //normalize(c.atr ?? 0, minAtr, maxAtr)
-        ]);
+        const row: number[] = [];
+
+        for (const f of features) {
+            const v = c[f] ?? 0;
+            const min = mins[f];
+            const max = maxs[f];
+
+            let normalized: number;
+
+            switch (f) {
+                case "slowRsi":
+                case "fastRsi":
+                    normalized = (v as number) / 100;
+                    break;
+                case "mfi":
+                    normalized = (v as number) / 100;
+                    break;
+                case "macd":
+                case "signal":
+                case "histogram":
+                case "atr":
+                    normalized = min === max ? 0 : (v - min) / (max - min);
+                    break;
+                default:
+                    normalized = min === max ? 0 : (v - min) / (max - min);
+                    break;
+            }
+
+            row.push(normalized);
+        }
+
+        result.push(row);
     }
+
     return result;
 }
