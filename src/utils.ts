@@ -99,6 +99,11 @@ export function validateSeriesRange(series: number[], from: number = -1, to: num
     }
 }
 
+export function averageOf<T>(items: T[], extractor: (item: T) => number): number {
+    if (items.length === 0) return 0;
+    return items.reduce((sum, item) => sum + extractor(item), 0) / items.length;
+}
+
 /**
  * Calculates the average net change (trend) over the last `window` values.
  * Measures trend: Positive means rising, negative means falling.
