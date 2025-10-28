@@ -272,6 +272,8 @@ export function calculateCandles(
         fastRsiPeriod: number;
         mfiPeriod: number;
         atrPeriod: number;
+        bollingerPeriod: number;
+        bollingerMultiplier: number;
     } = {
         ultraSlowEmaPeriod: 200,
         superSlowEmaPeriod: 99,
@@ -280,7 +282,9 @@ export function calculateCandles(
         slowRsiPeriod: 24,
         fastRsiPeriod: 7,
         mfiPeriod: 24,
-        atrPeriod: 14
+        atrPeriod: 14,
+        bollingerPeriod: 20,
+        bollingerMultiplier: 2
     }
 ): Candle[] {
     const { ultraSlowEmaPeriod, superSlowEmaPeriod, slowEmaPeriod, fastEmaPeriod, slowRsiPeriod, fastRsiPeriod, mfiPeriod, atrPeriod } = parameters;
@@ -366,8 +370,6 @@ export function normalizeCandles(candles: Candle[], features: (keyof Candle)[], 
             switch (f) {
                 case "slowRsi":
                 case "fastRsi":
-                    normalized = (v as number) / 100;
-                    break;
                 case "mfi":
                     normalized = (v as number) / 100;
                     break;
@@ -375,6 +377,9 @@ export function normalizeCandles(candles: Candle[], features: (keyof Candle)[], 
                 case "signal":
                 case "histogram":
                 case "atr":
+                case "upperBand":
+                case "middleBand":
+                case "lowerBand":
                     normalized = min === max ? 0 : (v - min) / (max - min);
                     break;
                 default:
