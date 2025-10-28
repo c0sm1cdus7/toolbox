@@ -7,13 +7,16 @@ settings:
 importers:
 
   .:
-    devDependencies:
+    dependencies:
       '@types/node':
         specifier: ^24.1.0
         version: 24.1.0
       typescript:
         specifier: ^4.3.5
         version: 4.9.5
+      zlib:
+        specifier: ^1.0.5
+        version: 1.0.5
 
 packages:
 
@@ -28,6 +31,10 @@ packages:
   undici-types@7.8.0:
     resolution: {integrity: sha512-9UJ2xGDvQ43tYyVMpuHlsgApydB8ZKfVYTsLDhXkFL/6gfkp+U8xTGdh8pMJv1SpZna0zxG1DwsKZsreLbXBxw==}
 
+  zlib@1.0.5:
+    resolution: {integrity: sha512-40fpE2II+Cd3k8HWTWONfeKE2jL+P42iWJ1zzps5W51qcTsOUKM5Q5m2PFb0CLxlmFAaUuUdJGc3OfZy947v0w==}
+    engines: {node: '>=0.2.0'}
+
 snapshots:
 
   '@types/node@24.1.0':
@@ -37,3 +44,5 @@ snapshots:
   typescript@4.9.5: {}
 
   undici-types@7.8.0: {}
+
+  zlib@1.0.5: {}

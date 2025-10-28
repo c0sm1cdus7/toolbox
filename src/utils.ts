@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import zlib from "zlib";
 
 export const MS_PER_YEAR = 365 * 24 * 60 * 60 * 1000;
 export const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -59,6 +60,21 @@ export function readPath(dir: string): { name: string; path: string }[] {
             name: file.replace(/\.json$/, ""),
             path: path.join(base, file)
         }));
+}
+
+export function compressJSON(json: object) {
+    const simulationSaveFileString = JSON.stringify(json);
+    return zlib.gzipSync(simulationSaveFileString);
+}
+
+export function decompressJSON(string: object) {
+    const decompresedString = zlib.gunzipSync(compressedSimulationSaveFile).toString();
+    const simulationSaveFileString = JSON.stringify(json);
+    return zlib.gzipSync(simulationSaveFileString);
+}
+
+export function readGZFile(path: string) {
+    return JSON.parse(fs.readFileSync(path, "utf-8"));
 }
 
 export function readJSONFile(path: string) {

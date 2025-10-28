@@ -21,6 +21,9 @@ export type Candle = {
     histogram: number | null;
     mfi: number | null;
     atr: number;
+    upperBand: number | null;
+    middleBand: number | null;
+    lowerBand: number | null;
     timestamp: number;
 };
 
@@ -210,6 +213,40 @@ export function calculateMFI(klines: Kline[], period: number = 14): (number | nu
     return mfi;
 }
 
+export function calculateBollingerBands(
+    prices: number[],
+    period = 20,
+    multiplier = 2
+): {
+    upper: (number | null)[];
+    middle: (number | null)[];
+    lower: (number | null)[];
+} {
+    const upper: (number | null)[] = [];
+    const middle: (number | null)[] = [];
+    const lower: (number | null)[] = [];
+
+    for (let i = 0; i < prices.length; i++) {
+        if (i < period - 1) {
+            upper.push(null);
+            middle.push(null);
+            lower.push(null);
+            continue;
+        }
+
+        const slice = prices.slice(i - period + 1, i + 1);
+        const mean = slice.reduce((a, b) => a + b, 0) / period;
+        const variance = slice.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / period;
+        const stdDev = Math.sqrt(variance);
+
+        middle.push(mean);
+        upper.push(mean + multiplier * stdDev);
+        lower.push(mean - multiplier * stdDev);
+    }
+
+    return { upper, middle, lower };
+}
+
 export function addNoiseToKlines(klines: Kline[], percent = 0.0005): Kline[] {
     return klines.map(([openTime, open, high, low, close, volume, ...rest]) => {
         const rand = () => (Math.random() * 2 - 1) * percent;
@@ -262,6 +299,7 @@ export function calculateCandles(
     const slowRsi = calculateRSI(closes, slowRsiPeriod);
     const fastRsi = calculateRSI(closes, fastRsiPeriod);
     const { macd, signal, histogram } = calculateMACD(closes);
+    const { upper, middle, lower } = calculateBollingerBands(closes, 20, 2);
     const mfi = calculateMFI(klines, mfiPeriod);
     const atr = calculateATR(klines, atrPeriod);
 
@@ -281,6 +319,9 @@ export function calculateCandles(
             macd: macd[i],
             signal: signal[i],
             histogram: histogram[i],
+            upperBand: upper[i],
+            middleBand: middle[i],
+            lowerBand: lower[i],
             mfi: mfi[i],
             atr: atr[i],
             timestamp: Number(k[0])
