@@ -1,6 +1,5 @@
 import fs from "fs";
 import path from "path";
-import zlib from "zlib";
 
 export const MS_PER_YEAR = 365 * 24 * 60 * 60 * 1000;
 export const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -13,6 +12,11 @@ export function randomNumber(min: number, max: number): number {
 
 export function randomInteger(min: number, max: number): number {
     return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+export function roundNumber(value: number, precision: number): number {
+    const factor = 10 ** precision;
+    return Math.floor(value * factor) / factor;
 }
 
 export function clampNumber(val: number, min: number, max: number): number {
@@ -60,17 +64,6 @@ export function readPath(dir: string): { name: string; path: string }[] {
             name: file.replace(/\.json$/, ""),
             path: path.join(base, file)
         }));
-}
-
-export function compressJSON(json: object) {
-    const simulationSaveFileString = JSON.stringify(json);
-    return zlib.gzipSync(simulationSaveFileString);
-}
-
-export function decompressJSON(string: object) {
-    const decompresedString = zlib.gunzipSync(compressedSimulationSaveFile).toString();
-    const simulationSaveFileString = JSON.stringify(json);
-    return zlib.gzipSync(simulationSaveFileString);
 }
 
 export function readGZFile(path: string) {
