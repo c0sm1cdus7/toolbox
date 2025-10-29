@@ -307,30 +307,32 @@ export function calculateCandles(
     const mfi = calculateMFI(klines, mfiPeriod);
     const atr = calculateATR(klines, atrPeriod);
 
-    return klines.map(
-        (k, i): Candle => ({
-            open: Number(k[1]),
-            high: Number(k[2]),
-            low: Number(k[3]),
-            close: Number(k[4]),
-            volume: Number(k[5]),
-            fastEma: fastEma[i],
-            slowEma: slowEma[i],
-            superSlowEma: superSlowEma[i],
-            ultraSlowEma: ultraSlowEma[i],
-            slowRsi: slowRsi[i],
-            fastRsi: fastRsi[i],
-            macd: macd[i],
-            signal: signal[i],
-            histogram: histogram[i],
-            upperBand: upper[i],
-            middleBand: middle[i],
-            lowerBand: lower[i],
-            mfi: mfi[i],
-            atr: atr[i],
-            timestamp: Number(k[0])
-        })
-    );
+    return klines
+        .map(
+            (k, i): Candle => ({
+                open: Number(k[1]),
+                high: Number(k[2]),
+                low: Number(k[3]),
+                close: Number(k[4]),
+                volume: Number(k[5]),
+                fastEma: fastEma[i],
+                slowEma: slowEma[i],
+                superSlowEma: superSlowEma[i],
+                ultraSlowEma: ultraSlowEma[i],
+                slowRsi: slowRsi[i],
+                fastRsi: fastRsi[i],
+                macd: macd[i],
+                signal: signal[i],
+                histogram: histogram[i],
+                upperBand: upper[i],
+                middleBand: middle[i],
+                lowerBand: lower[i],
+                mfi: mfi[i],
+                atr: atr[i],
+                timestamp: Number(k[0])
+            })
+        )
+        .slice(maxPeriodRequired);
 }
 
 export function normalizeCandles(candles: Candle[], features: (keyof Candle)[], start?: number, end?: number): number[][] {
